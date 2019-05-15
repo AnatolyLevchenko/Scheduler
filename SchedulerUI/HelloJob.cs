@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Windows.Forms;
 using Quartz;
 
 namespace SchedulerUI
@@ -7,14 +8,7 @@ namespace SchedulerUI
     {
         public void Execute(IJobExecutionContext context)
         {
-            JobKey key = context.JobDetail.Key;
-
-            JobDataMap dataMap = context.JobDetail.JobDataMap;
-
-            string jobSays = dataMap.GetString("jobSays");
-            float myFloatValue = dataMap.GetFloat("myFloatValue");
-
-             Console.Error.WriteLineAsync("Instance " + key + " of DumbJob says: " + jobSays + ", and val is: " + myFloatValue);
+            MessageBox.Show("Invoked");
         }
     }
 }

@@ -51,11 +51,16 @@ namespace SchedulerUI
 
             WriteToFile("Quartz.Net Started ...");
 
-            Test001(Scheduler);
+            //Test001(Scheduler);
 
-            WriteToFile("Quartz.Net Running ...");
+            //WriteToFile("Quartz.Net Running ...");
 
-            Console.ReadLine();
+            
+            
+           
+
+
+
 
         }
 
