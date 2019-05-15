@@ -181,14 +181,20 @@ namespace SchedulerUI
             {
                 ITrigger trigger = scheduler.GetTrigger(triggerKey);
 
-                list.Add(new TriggerModel()
+                var model = new TriggerModel()
                 {
                     Name = trigger.Key.Name,
                     Group = trigger.Key.Group,
-                    Description=trigger.Description,
-                    PreviousFireTimeUTC=trigger.GetPreviousFireTimeUtc().ToString(),
-                    NextFireTimeUTC=trigger.GetNextFireTimeUtc().ToString()
-                });
+                    Description = trigger.Description,
+                    //PreviousFireTimeUTC = trigger.GetPreviousFireTimeUtc().ToString(),
+                    //NextFireTimeUTC = trigger.GetNextFireTimeUtc().ToString()
+                };
+
+                var date = trigger.GetNextFireTimeUtc()?.DateTime;
+                if (date.HasValue)
+                    model.NextFireTimeUTC = date.Value.ToLocalTime().ToString();
+
+                list.Add(model);
                 
             }
 
