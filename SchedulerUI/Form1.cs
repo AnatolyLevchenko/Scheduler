@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Quartz;
 using Quartz.Impl;
+using Quartz.Impl.Matchers;
 //using Quartz;
 //using Quartz.Impl;
 using Scheduler.Data;
@@ -34,6 +35,9 @@ namespace SchedulerUI
         {
             StdSchedulerFactory schedFact = new StdSchedulerFactory();
             IScheduler Scheduler =  schedFact.GetScheduler();
+
+            var jobs = GetAllJobs(Scheduler);
+            dataGridView1.DataSource = jobs;
 
             try
             {
@@ -118,6 +122,52 @@ namespace SchedulerUI
                 return (ex.InnerException);
             }
             return (null);
+        }
+
+
+        private static List<JobInfo> GetAllJobs(IScheduler scheduler)
+        {
+            List<JobInfo> ls=new List<JobInfo>();
+
+            IList<string> jobGroups = scheduler.GetJobGroupNames();
+
+            foreach (string group in jobGroups)
+            {
+                var groupMatcher = GroupMatcher<JobKey>.GroupContains(group);
+                var jobKeys = scheduler.GetJobKeys(groupMatcher);
+                foreach (var jobKey in jobKeys)
+                {
+                    var detail = scheduler.GetJobDetail(jobKey);
+                    var triggers = scheduler.GetTriggersOfJob(jobKey);
+                    foreach (ITrigger trigger in triggers)
+                    {
+                        JobInfo job = new JobInfo
+                        {
+                            Group = group,
+                            Description = detail.Description,
+                            TriggerName = trigger.Key.Name,
+                            TriggerKeyGroup = trigger.Key.Group,
+                            TriggerState = scheduler.GetTriggerState(trigger.Key),
+                            Name = jobKey.Name
+                        };
+
+                        DateTimeOffset? nextFireTime = trigger.GetNextFireTimeUtc();
+                        if (nextFireTime.HasValue)
+                        {
+                            job.NextFireTime=nextFireTime.Value.LocalDateTime.ToString();
+                        }
+
+                        DateTimeOffset? previousFireTime = trigger.GetPreviousFireTimeUtc();
+                        if (previousFireTime.HasValue)
+                        {
+                            job.PreviousFireTime=previousFireTime.Value.LocalDateTime.ToString();
+                        }
+                        ls.Add(job);
+                    }
+                }
+            }
+
+            return ls;
         }
 
         void WriteToFile(string s)
