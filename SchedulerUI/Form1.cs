@@ -15,33 +15,26 @@ using Quartz.Impl.Matchers;
 //using Quartz;
 //using Quartz.Impl;
 using Scheduler.Data;
+using SchedulerUI.ViewModels;
 
 namespace SchedulerUI
 {
-    public partial class Form1 : Form
+    public partial class MainForm : Form
     {
+        private StdSchedulerFactory schedFact;
+        private readonly IScheduler Scheduler;
 
-        public Form1()
+
+        public MainForm()
         {
             InitializeComponent();
-        }
-
-        private void Form1_Load(object sender, EventArgs e)
-        {
-          
-        }
-
-        private async void button1_Click(object sender, EventArgs e)
-        {
-            StdSchedulerFactory schedFact = new StdSchedulerFactory();
-            IScheduler Scheduler =  schedFact.GetScheduler();
-
-            var jobs = GetAllJobs(Scheduler);
-            dataGridView1.DataSource = jobs;
+            schedFact = new StdSchedulerFactory();
+            Scheduler = schedFact.GetScheduler();
 
             try
             {
                 Scheduler.Start();
+                olvTriggers.SetObjects(GetTriggerList(Scheduler));
             }
             catch (Quartz.SchedulerConfigException ex)
             {
@@ -58,13 +51,18 @@ namespace SchedulerUI
             //Test001(Scheduler);
 
             //WriteToFile("Quartz.Net Running ...");
+        }
 
-            
-            
-           
+        private void Form1_Load(object sender, EventArgs e)
+        {
+          
+        }
 
-
-
+        private void button1_Click(object sender, EventArgs e)
+        {
+          
+            var jobs = GetAllJobs(Scheduler);
+            dataGridView1.DataSource = jobs;
 
         }
 
@@ -175,5 +173,31 @@ namespace SchedulerUI
             this.textBox1.Text += s;
         }
 
+        private List<TriggerModel> GetTriggerList(IScheduler scheduler)
+        {
+            var list=new List<TriggerModel>();
+            var allTriggerKeys = scheduler.GetTriggerKeys(GroupMatcher<TriggerKey>.AnyGroup());
+            foreach (var triggerKey in allTriggerKeys)
+            {
+                ITrigger trigger = scheduler.GetTrigger(triggerKey);
+
+                list.Add(new TriggerModel()
+                {
+                    Name = trigger.Key.Name,
+                    Group = trigger.Key.Group,
+                    Description=trigger.Description,
+                    PreviousFireTimeUTC=trigger.GetPreviousFireTimeUtc().ToString(),
+                    NextFireTimeUTC=trigger.GetNextFireTimeUtc().ToString()
+                });
+                
+            }
+
+            return list;
+        }
+
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            Scheduler.Shutdown();
+        }
     }
 }
